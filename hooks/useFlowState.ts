@@ -72,9 +72,18 @@ export function useFlowState(mode: 'solo' | 'coop' = 'solo') {
     // ── Preferencias ───────────────────────────────────────────────────────────
 
     const setCategory = useCallback((category: MediaCategory) => {
+        const defaultYear: Record<MediaCategory, number> = {
+            movie: 1980,
+            series: 1990,
+            game: 2000,
+        }
         setState((s) => ({
             ...s,
-            preferences: { ...s.preferences, category },
+            preferences: {
+                ...s.preferences,
+                category,
+                yearRange: [defaultYear[category], new Date().getFullYear()],
+            },
             step: 'genres',
         }))
     }, [])

@@ -132,13 +132,6 @@ export default function LandingPage() {
         className="relative z-10 flex flex-col items-center text-center px-6 max-w-2xl mx-auto"
       >
 
-        {/* Badge */}
-        <motion.div variants={item}>
-          <div className="mb-8 inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs font-semibold tracking-widest text-white/50 uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-            MatchFlix Beta
-          </div>
-        </motion.div>
 
         {/* Título */}
         <motion.h1
@@ -153,8 +146,7 @@ export default function LandingPage() {
           variants={item}
           className="text-white/50 text-lg sm:text-xl mb-12 max-w-md leading-relaxed"
         >
-          Respondé unas preguntas, deslizá algunas tarjetas y encontrá
-          tu próxima peli, serie o juego — solo o con otra persona.
+          Para vos que no sabes qué ver o qué jugar siendo que tenes 500 juegos en steam y garpas +5 plataformas de streaming, elegí 3 opciones, swipeá tarjetas y el algoritmo te va a dar un match con un porcentaje dependiendo tus elecciones. :)
         </motion.p>
 
         {/* Botones */}
@@ -179,13 +171,6 @@ export default function LandingPage() {
           </Link>
         </motion.div>
 
-        {/* Hint */}
-        <motion.p
-          variants={item}
-          className="mt-8 text-white/25 text-sm"
-        >
-          1–2 minutos · sin registro · completamente gratis
-        </motion.p>
 
       </motion.div>
     </main>
