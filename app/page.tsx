@@ -103,20 +103,6 @@ export default function LandingPage() {
         />
       </div>
 
-      {/* Indicadores */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex gap-1.5">
-        {POSTERS.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentIndex(i)}
-          >
-            <div
-              className={`h-0.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-6 bg-white' : 'w-2 bg-white/30'
-                }`}
-            />
-          </button>
-        ))}
-      </div>
 
       {/* Contenido */}
       <motion.div

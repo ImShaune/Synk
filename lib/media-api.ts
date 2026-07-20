@@ -17,7 +17,7 @@ async function tmdbFetch(path: string, params: Record<string, string> = {}) {
         headers: {
             Authorization: `Bearer ${process.env.TMDB_API_READ_TOKEN}`,
         },
-        next: { revalidate: 3600 },
+        cache: 'no-store',
     })
 
     if (!res.ok) throw new Error(`TMDB ${path} → ${res.status}`)
@@ -29,7 +29,7 @@ async function rawgFetch(path: string, params: Record<string, string> = {}) {
     url.searchParams.set('key', process.env.RAWG_API_KEY!)
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
 
-    const res = await fetch(url.toString(), { next: { revalidate: 3600 } })
+    const res = await fetch(url.toString(), { cache: 'no-store' })
     if (!res.ok) throw new Error(`RAWG ${path} → ${res.status}`)
     return res.json()
 }
@@ -55,13 +55,15 @@ export async function searchMovies(prefs: UserPreferences): Promise<MediaItem[]>
         .map((g) => TMDB_MOVIE_GENRE_MAP[g])
         .filter(Boolean)
 
+    const page = Math.floor(Math.random() * 8) + 1
+
     const data = await tmdbFetch('/discover/movie', {
         sort_by: 'popularity.desc',
         'vote_count.gte': '100',
         'primary_release_date.gte': `${from}-01-01`,
         'primary_release_date.lte': `${to}-12-31`,
         ...(genreIds.length ? { with_genres: genreIds.join(',') } : {}),
-        page: '1',
+        page: String(page),
     })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,13 +92,15 @@ export async function searchSeries(prefs: UserPreferences): Promise<MediaItem[]>
         .map((g) => TMDB_TV_GENRE_MAP[g])
         .filter(Boolean)
 
+    const page = Math.floor(Math.random() * 8) + 1
+
     const data = await tmdbFetch('/discover/tv', {
         sort_by: 'popularity.desc',
         'vote_count.gte': '50',
         'first_air_date.gte': `${from}-01-01`,
         'first_air_date.lte': `${to}-12-31`,
         ...(genreIds.length ? { with_genres: genreIds.join(',') } : {}),
-        page: '1',
+        page: String(page),
     })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -121,10 +125,13 @@ export async function searchSeries(prefs: UserPreferences): Promise<MediaItem[]>
 export async function searchGames(prefs: UserPreferences): Promise<MediaItem[]> {
     const [from, to] = prefs.yearRange
 
+    const page = Math.floor(Math.random() * 5) + 1
+
     const data = await rawgFetch('/games', {
         ordering: '-rating',
         page_size: '20',
         dates: `${from}-01-01,${to}-12-31`,
+        page: String(page),
         ...(prefs.genres.length
             ? { genres: prefs.genres.join(',').toLowerCase() }
             : {}),
@@ -149,7 +156,7 @@ export async function searchGames(prefs: UserPreferences): Promise<MediaItem[]> 
     }))
 }
 
-// ── Detalle de película (géneros, duración, plataformas, tráiler) ─────────────
+// ── Detalle de película ────────────────────────────────────────────────────────
 
 export async function getMovieDetail(
     tmdbId: number
@@ -185,7 +192,7 @@ export async function getMovieDetail(
     }
 }
 
-// ── Detalle de serie ──────────────────────────────────────────────────────────
+// ── Detalle de serie ───────────────────────────────────────────────────────────
 
 export async function getSeriesDetail(
     tmdbId: number
