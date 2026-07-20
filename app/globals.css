@@ -133,3 +133,35 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ── View Transitions - Circular Reveal ─────────────────────────────────── */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+[data-theme='light'] {
+  --bg: #f5f5f0;
+  --surface: #ffffff;
+  --text: #0a0a0f;
+  --text-muted: #6b6b6b;
+  --border: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='dark'] {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --text: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --border: rgba(255, 255, 255, 0.08);
+}

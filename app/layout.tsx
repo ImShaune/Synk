@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { PageTransition } from '@/components/layout/PageTransition'
 import './globals.css'
 
 const geistSans = Geist({
@@ -13,12 +14,11 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'MatchFlix — Descubrí qué ver o jugar hoy',
-  description:
-    'Encontrá películas, series y videojuegos que te encanten. Solo o con otra persona.',
+  title: 'MatchFlix — Descubri que ver o jugar hoy',
+  description: 'Encontra peliculas, series y videojuegos que te encanten. Solo o con otra persona.',
   openGraph: {
     title: 'MatchFlix',
-    description: '¿No sabés qué ver o jugar hoy?',
+    description: 'No sabes que ver o jugar hoy?',
     type: 'website',
   },
 }
@@ -30,11 +30,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        style={{ fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}
-      >
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <PageTransition>
+          {children}
+        </PageTransition>
       </body>
     </html>
   )
