@@ -1,6 +1,7 @@
-import { createServerSupabaseClient } from './supabase'
+import { createServerSupabaseClient } from './supabase-server'
 import { generateRoomCode } from './utils'
 import type { Room } from '@/types'
+
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapRow(row: Record<string, any>): Room {
