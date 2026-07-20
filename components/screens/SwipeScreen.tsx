@@ -26,7 +26,6 @@ export function SwipeScreen({ cards, onComplete }: SwipeScreenProps) {
     return (
         <div className="flex flex-col items-center w-full max-w-lg mx-auto px-4">
 
-            {/* Header */}
             <motion.div
                 initial={{ opacity: 0, y: -16 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -43,14 +42,17 @@ export function SwipeScreen({ cards, onComplete }: SwipeScreenProps) {
                 <ProgressBar value={progress} />
             </motion.div>
 
-            {/* Stack de tarjetas */}
-            <div className="relative w-full" style={{ height: '520px' }}>
+            <div
+                className="relative w-full"
+                style={{ height: '540px', isolation: 'isolate' }}
+            >
                 {cards
                     .slice(currentIndex, currentIndex + 4)
                     .reverse()
                     .map((card, i, arr) => {
                         const stackIndex = arr.length - 1 - i
                         const isTop = stackIndex === 0
+                        const offset = stackIndex * 10
 
                         return (
                             <SwipeCard
@@ -58,6 +60,7 @@ export function SwipeScreen({ cards, onComplete }: SwipeScreenProps) {
                                 media={card}
                                 isTop={isTop}
                                 stackIndex={stackIndex}
+                                offset={offset}
                                 onDecision={(id, decision) => {
                                     if (decision === 'like') like()
                                     else dislike()
@@ -67,14 +70,13 @@ export function SwipeScreen({ cards, onComplete }: SwipeScreenProps) {
                     })}
             </div>
 
-            {/* Hint */}
             <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
                 className="mt-6 text-white/25 text-xs text-center"
             >
-                Deslizá o usá los botones para decidir
+                Desliza o usa los botones para decidir
             </motion.p>
 
         </div>

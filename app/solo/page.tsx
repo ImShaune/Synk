@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BackdropPoster } from '@/components/ui/BackdropPoster'
 import { CategoryPicker } from '@/components/screens/CategoryPicker'
@@ -16,8 +16,21 @@ import type { SwipeVote } from '@/types'
 const FALLBACK_BACKDROP = 'https://image.tmdb.org/t/p/w1280/tmU7GeKVybMWFButWEGl2M4GeiP.jpg'
 
 export default function SoloPage() {
-    const { state, setCategory, toggleGenre, setYearRange, setMediaCards, setMatchResult, goTo, goNext, goBack, reset } = useFlowState('solo')
+    const {
+        state,
+        setCategory,
+        toggleGenre,
+        setYearRange,
+        setMediaCards,
+        setMatchResult,
+        goTo,
+        goNext,
+        goBack,
+        reset,
+    } = useFlowState('solo')
+
     const { search } = useMediaSearch()
+    const [isSaved, setIsSaved] = useState(false)
 
     const backdropUrl = state.mediaCards[0]?.backdropUrl ?? FALLBACK_BACKDROP
 
@@ -31,7 +44,6 @@ export default function SoloPage() {
 
     const handleSwipeComplete = useCallback(async (votes: SwipeVote[]) => {
         goTo('processing')
-
         try {
             const res = await fetch('/api/match', {
                 method: 'POST',
@@ -58,13 +70,33 @@ export default function SoloPage() {
         }
     }, [state.step, goTo, goNext])
 
+    function handleSave() {
+        if (!state.matchResult) return
+        try {
+            const raw = localStorage.getItem('matchflix-saved')
+            const saved = raw ? JSON.parse(raw) : []
+            const newItem = {
+                id: 'saved-' + Date.now(),
+                media: state.matchResult.media,
+                savedAt: new Date().toISOString(),
+            }
+            localStorage.setItem('matchflix-saved', JSON.stringify([newItem, ...saved]))
+            setIsSaved(true)
+        } catch {
+            console.error('No se pudo guardar')
+        }
+    }
+
+    function handleReset() {
+        setIsSaved(false)
+        reset()
+    }
+
     return (
         <main className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden py-12">
 
-            {/* Fondo */}
             <BackdropPoster src={backdropUrl} />
 
-            {/* Contenido */}
             <AnimatePresence mode="wait">
                 {state.step === 'category' && (
                     <motion.div
@@ -157,9 +189,10 @@ export default function SoloPage() {
                     >
                         <MatchResult
                             result={state.matchResult}
-                            onSave={() => { }}
+                            onSave={handleSave}
                             onRetry={() => goTo('swipe')}
-                            onReset={reset}
+                            onReset={handleReset}
+                            isSaved={isSaved}
                         />
                     </motion.div>
                 )}

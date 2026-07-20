@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 
@@ -11,7 +11,7 @@ interface LoadingScreenProps {
 const MESSAGES = [
     'Analizando tus gustos...',
     'Buscando coincidencias...',
-    'Comparando miles de títulos...',
+    'Comparando miles de titulos...',
     'Aplicando el algoritmo...',
     'Preparando tus recomendaciones...',
     'Casi listo...',
@@ -20,55 +20,47 @@ const MESSAGES = [
 export function LoadingScreen({ onComplete }: LoadingScreenProps) {
     const [progress, setProgress] = useState(0)
     const [messageIndex, setMessageIndex] = useState(0)
+    const calledRef = useRef(false)
 
     useEffect(() => {
-        // Avanza el progreso gradualmente
-        const progressInterval = setInterval(() => {
-            setProgress((prev) => {
-                if (prev >= 95) {
-                    clearInterval(progressInterval)
-                    return 95
-                }
-                // Avanza más rápido al principio, más lento al final
-                const increment = prev < 60 ? 3 : prev < 85 ? 1.5 : 0.5
-                return Math.min(prev + increment, 95)
-            })
-        }, 100)
-
-        // Rota los mensajes
         const messageInterval = setInterval(() => {
             setMessageIndex((prev) => (prev + 1) % MESSAGES.length)
         }, 1800)
 
-        return () => {
-            clearInterval(progressInterval)
-            clearInterval(messageInterval)
-        }
+        return () => clearInterval(messageInterval)
     }, [])
 
-    // Cuando onComplete se llama desde afuera (cuando la API responde),
-    // completamos la barra y esperamos un momento antes de avanzar
     useEffect(() => {
-        if (progress >= 95) {
-            const timeout = setTimeout(() => {
-                setProgress(100)
-                setTimeout(onComplete, 400)
-            }, 500)
-            return () => clearTimeout(timeout)
-        }
-    }, [progress, onComplete])
+        const progressInterval = setInterval(() => {
+            setProgress((prev) => {
+                const increment = prev < 60 ? 3 : prev < 85 ? 1.5 : 0.5
+                const next = Math.min(prev + increment, 95)
+
+                if (next >= 95 && !calledRef.current) {
+                    calledRef.current = true
+                    clearInterval(progressInterval)
+                    setTimeout(() => {
+                        setProgress(100)
+                        setTimeout(() => onComplete(), 300)
+                    }, 400)
+                }
+
+                return next
+            })
+        }, 100)
+
+        return () => clearInterval(progressInterval)
+    }, [onComplete])
 
     return (
         <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto px-6 min-h-[60vh]">
 
-            {/* Ícono animado */}
             <motion.div
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
                 className="relative mb-12"
             >
-                {/* Anillos pulsantes */}
                 {[0, 1, 2].map((i) => (
                     <motion.div
                         key={i}
@@ -86,7 +78,6 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
                     />
                 ))}
 
-                {/* Centro */}
                 <div className="relative w-20 h-20 rounded-full glass flex items-center justify-center">
                     <motion.div
                         animate={{ rotate: 360 }}
@@ -96,7 +87,6 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
                 </div>
             </motion.div>
 
-            {/* Mensaje animado */}
             <div className="h-8 flex items-center justify-center mb-10">
                 <AnimatePresence mode="wait">
                     <motion.p
@@ -112,13 +102,8 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
                 </AnimatePresence>
             </div>
 
-            {/* Barra de progreso */}
             <div className="w-full">
-                <ProgressBar
-                    value={progress}
-                    showLabel
-                    shimmer
-                />
+                <ProgressBar value={progress} showLabel shimmer />
             </div>
 
         </div>

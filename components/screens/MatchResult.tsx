@@ -131,17 +131,6 @@ export function MatchResult({
         </motion.div>
       )}
 
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35, duration: 0.5 }}
-        className="w-full glass rounded-2xl p-6 mb-4"
-      >
-        <p className="text-white/40 text-xs uppercase tracking-widest mb-3">
-          Por que este match?
-        </p>
-        <p className="text-white/70 text-sm leading-relaxed">{explanation}</p>
-      </motion.div>
 
       {media.synopsis && (
         <motion.div
