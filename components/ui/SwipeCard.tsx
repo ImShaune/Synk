@@ -52,42 +52,43 @@ export function SwipeCard({ media, onDecision, isTop, stackIndex, offset }: Swip
 
     function handleDragEnd(_: unknown, info: PanInfo) {
         isDragging.current = false
-        if (info.offset.x > SWIPE_THRESHOLD) {
-            flyOut('right')
-        } else if (info.offset.x < -SWIPE_THRESHOLD) {
-            flyOut('left')
-        } else {
+        if (info.offset.x > SWIPE_THRESHOLD) flyOut('right')
+        else if (info.offset.x < -SWIPE_THRESHOLD) flyOut('left')
+        else {
             controls.start({
-                x: 0,
-                y: 0,
-                rotate: 0,
+                x: 0, y: 0, rotate: 0,
                 transition: { type: 'spring', stiffness: 400, damping: 28 },
             })
         }
     }
 
+    // ── Cards del stack ───────────────────────────────────────────────────────
+
     if (!isTop) {
+        const scale = 1 - stackIndex * 0.04
         return (
             <motion.div
-                className="absolute rounded-3xl overflow-hidden"
+                className="absolute left-0 right-0 rounded-3xl overflow-hidden"
                 animate={{
-                    scale: 1 - stackIndex * 0.04,
-                    opacity: stackIndex > 2 ? 0 : 1 - stackIndex * 0.25,
+                    scale,
+                    opacity: stackIndex > 2 ? 0 : 1 - stackIndex * 0.3,
                 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 style={{
                     zIndex: 10 - stackIndex,
                     top: offset,
-                    left: 0,
-                    right: 0,
-                    bottom: -offset,
+                    bottom: 0,
+                    // Recortar la parte superior para que no se superponga
+                    clipPath: `inset(0 0 0 0 round 24px)`,
                 }}
             >
                 <Image src={media.backdropUrl} alt="" fill className="object-cover" />
-                <div className="absolute inset-0 bg-black/70" />
+                <div className="absolute inset-0 bg-black/75" />
             </motion.div>
         )
     }
+
+    // ── Card principal ────────────────────────────────────────────────────────
 
     return (
         <motion.div
@@ -214,22 +215,13 @@ export function SwipeCard({ media, onDecision, isTop, stackIndex, offset }: Swip
 
                         <button
                             onPointerDown={(e) => e.stopPropagation()}
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                setExpanded((v) => !v)
-                            }}
+                            onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v) }}
                             className="flex items-center gap-1 text-white/40 hover:text-white/70 text-xs transition-colors duration-200"
                         >
                             {expanded ? (
-                                <>
-                                    <ChevronUp className="w-3.5 h-3.5" />
-                                    Ver menos
-                                </>
+                                <><ChevronUp className="w-3.5 h-3.5" />Ver menos</>
                             ) : (
-                                <>
-                                    <ChevronDown className="w-3.5 h-3.5" />
-                                    Ver más
-                                </>
+                                <><ChevronDown className="w-3.5 h-3.5" />Ver sinopsis completa</>
                             )}
                         </button>
                     </div>

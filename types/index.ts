@@ -8,12 +8,15 @@ export interface MediaItem {
     year: number
     rating: number
     duration?: string
+    episodes?: string
+    seasons?: number
     genres: string[]
     platforms: string[]
     posterUrl: string
     backdropUrl: string
     synopsis: string
     director?: string
+    developer?: string
     studio?: string
     trailerKey?: string
     popularity: number
@@ -23,6 +26,7 @@ export interface UserPreferences {
     category: MediaCategory | null
     genres: string[]
     yearRange: [number, number]
+    cardCount: number
 }
 
 export type SwipeDecision = 'like' | 'dislike'
@@ -70,6 +74,7 @@ export type FlowStep =
     | 'category'
     | 'genres'
     | 'yearRange'
+    | 'cardCount'
     | 'loading'
     | 'swipe'
     | 'processing'

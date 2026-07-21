@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
@@ -119,6 +119,7 @@ export function MatchResult({ result, onSave, onRetry, onReset, isSaved = false 
 
         <div className="grid grid-cols-2 gap-4">
 
+          {/* Generos */}
           {media.genres.length > 0 && (
             <div className="col-span-2">
               <p className="text-white/30 text-xs mb-2">Generos</p>
@@ -132,6 +133,7 @@ export function MatchResult({ result, onSave, onRetry, onReset, isSaved = false 
             </div>
           )}
 
+          {/* Director */}
           {media.director && (
             <div>
               <p className="text-white/30 text-xs mb-1 flex items-center gap-1">
@@ -142,6 +144,7 @@ export function MatchResult({ result, onSave, onRetry, onReset, isSaved = false 
             </div>
           )}
 
+          {/* Desarrolladora (juegos) */}
           {media.developer && (
             <div>
               <p className="text-white/30 text-xs mb-1 flex items-center gap-1">
@@ -152,6 +155,7 @@ export function MatchResult({ result, onSave, onRetry, onReset, isSaved = false 
             </div>
           )}
 
+          {/* Estudio / Network */}
           {media.studio && (
             <div>
               <p className="text-white/30 text-xs mb-1 flex items-center gap-1">
@@ -162,6 +166,7 @@ export function MatchResult({ result, onSave, onRetry, onReset, isSaved = false 
             </div>
           )}
 
+          {/* Duracion */}
           {media.duration && (
             <div>
               <p className="text-white/30 text-xs mb-1 flex items-center gap-1">
@@ -172,6 +177,7 @@ export function MatchResult({ result, onSave, onRetry, onReset, isSaved = false 
             </div>
           )}
 
+          {/* Temporadas y episodios */}
           {media.episodes && (
             <div>
               <p className="text-white/30 text-xs mb-1 flex items-center gap-1">
@@ -241,7 +247,7 @@ export function MatchResult({ result, onSave, onRetry, onReset, isSaved = false 
         </button>
 
         {trailerUrl !== null && (
-          <a
+          
             href={trailerUrl}
             target="_blank"
             rel="noopener noreferrer"

@@ -17,6 +17,7 @@ const INITIAL_STATE: FlowState = {
         category: null,
         genres: [],
         yearRange: [1990, new Date().getFullYear()],
+        cardCount: 20,
     },
     mediaCards: [],
     votes: [],
@@ -41,6 +42,7 @@ export function useFlowState(mode: 'solo' | 'coop' = 'solo') {
                 'category',
                 'genres',
                 'yearRange',
+                'cardCount',
                 'loading',
                 'swipe',
                 'processing',
@@ -58,6 +60,7 @@ export function useFlowState(mode: 'solo' | 'coop' = 'solo') {
                 'category',
                 'genres',
                 'yearRange',
+                'cardCount',
                 'loading',
                 'swipe',
                 'processing',
@@ -107,6 +110,13 @@ export function useFlowState(mode: 'solo' | 'coop' = 'solo') {
         }))
     }, [])
 
+    const setCardCount = useCallback((count: number) => {
+        setState((s) => ({
+            ...s,
+            preferences: { ...s.preferences, cardCount: count },
+        }))
+    }, [])
+
     // ── Swipe ──────────────────────────────────────────────────────────────────
 
     const setMediaCards = useCallback((cards: MediaItem[]) => {
@@ -140,6 +150,7 @@ export function useFlowState(mode: 'solo' | 'coop' = 'solo') {
         setCategory,
         toggleGenre,
         setYearRange,
+        setCardCount,
         setMediaCards,
         addVote,
         setMatchResult,

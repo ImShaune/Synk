@@ -1,43 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Star, Trash2, Heart } from 'lucide-react'
-import type { MediaItem } from '@/types'
-
-interface SavedItem {
-    id: string
-    media: MediaItem
-    savedAt: string
-}
+import { useFavorites } from '@/hooks/useFavorites'
 
 export default function SavedPage() {
-    const [items, setItems] = useState<SavedItem[]>([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        try {
-            const raw = localStorage.getItem('matchflix-saved')
-            if (raw) setItems(JSON.parse(raw))
-        } catch {
-            setItems([])
-        } finally {
-            setLoading(false)
-        }
-    }, [])
-
-    function handleDelete(id: string) {
-        const updated = items.filter((i) => i.id !== id)
-        setItems(updated)
-        localStorage.setItem('matchflix-saved', JSON.stringify(updated))
-    }
+    const { items, loading, remove } = useFavorites()
 
     return (
         <main className="relative min-h-screen overflow-hidden">
 
-            {/* Fondo */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-black to-black" />
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-purple-600/8 blur-3xl pointer-events-none" />
@@ -45,7 +19,6 @@ export default function SavedPage() {
 
             <div className="relative z-10 max-w-2xl mx-auto px-6 py-12">
 
-                {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: -16 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -70,14 +43,12 @@ export default function SavedPage() {
                     </div>
                 </motion.div>
 
-                {/* Loading */}
                 {loading && (
                     <div className="flex justify-center py-20">
                         <div className="w-8 h-8 rounded-full border-2 border-white/20 border-t-white animate-spin" />
                     </div>
                 )}
 
-                {/* Empty */}
                 {!loading && items.length === 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: 24 }}
@@ -100,7 +71,6 @@ export default function SavedPage() {
                     </motion.div>
                 )}
 
-                {/* Lista */}
                 <AnimatePresence>
                     {items.map((item, i) => (
                         <motion.div
@@ -111,7 +81,6 @@ export default function SavedPage() {
                             transition={{ delay: i * 0.08, duration: 0.4 }}
                             className="flex gap-4 p-4 rounded-2xl glass border border-white/8 mb-4 group"
                         >
-                            {/* Poster */}
                             <div className="relative w-16 h-24 rounded-xl overflow-hidden shrink-0">
                                 <Image
                                     src={item.media.posterUrl}
@@ -121,7 +90,6 @@ export default function SavedPage() {
                                 />
                             </div>
 
-                            {/* Info */}
                             <div className="flex-1 min-w-0">
                                 <h3 className="text-white font-semibold text-base leading-tight mb-1 truncate">
                                     {item.media.title}
@@ -134,7 +102,13 @@ export default function SavedPage() {
                                         {item.media.rating.toFixed(1)}
                                     </span>
                                     <span>·</span>
-                                    <span className="capitalize">{item.media.category === 'movie' ? 'Pelicula' : item.media.category === 'series' ? 'Serie' : 'Juego'}</span>
+                                    <span>
+                                        {item.media.category === 'movie'
+                                            ? 'Pelicula'
+                                            : item.media.category === 'series'
+                                                ? 'Serie'
+                                                : 'Juego'}
+                                    </span>
                                 </div>
                                 <div className="flex flex-wrap gap-1">
                                     {item.media.genres.slice(0, 3).map((g) => (
@@ -148,9 +122,8 @@ export default function SavedPage() {
                                 </div>
                             </div>
 
-                            {/* Delete */}
                             <button
-                                onClick={() => handleDelete(item.id)}
+                                onClick={() => remove(item.id)}
                                 className="opacity-0 group-hover:opacity-100 p-2 rounded-xl hover:bg-red-500/20 text-white/30 hover:text-red-400 transition-all duration-200 self-start"
                             >
                                 <Trash2 className="w-4 h-4" />

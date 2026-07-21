@@ -13,26 +13,28 @@ export async function POST(req: NextRequest) {
             )
         }
 
-        let cards
+        const cardCount = prefs.cardCount ?? 10
+
+        let results
 
         switch (prefs.category) {
             case 'movie':
-                cards = await searchMovies(prefs)
+                results = await searchMovies(prefs, cardCount)
                 break
             case 'series':
-                cards = await searchSeries(prefs)
+                results = await searchSeries(prefs, cardCount)
                 break
             case 'game':
-                cards = await searchGames(prefs)
+                results = await searchGames(prefs, cardCount)
                 break
             default:
                 return NextResponse.json(
-                    { error: 'Categoría inválida' },
+                    { error: 'Categoria invalida' },
                     { status: 400 }
                 )
         }
 
-        return NextResponse.json({ cards })
+        return NextResponse.json({ cards: results })
     } catch (err) {
         console.error('[api/search]', err)
         return NextResponse.json(

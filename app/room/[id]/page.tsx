@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useState } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BackdropPoster } from '@/components/ui/BackdropPoster'
@@ -8,12 +8,14 @@ import { RoomCode } from '@/components/ui/RoomCode'
 import { CategoryPicker } from '@/components/screens/CategoryPicker'
 import { GenrePicker } from '@/components/screens/GenrePicker'
 import { YearRangePicker } from '@/components/screens/YearRangePicker'
+import { CardCountPicker } from '@/components/screens/CardCountPicker'
 import { LoadingScreen } from '@/components/screens/LoadingScreen'
 import { SwipeScreen } from '@/components/screens/SwipeScreen'
 import { MatchResult } from '@/components/screens/MatchResult'
 import { useFlowState } from '@/hooks/useFlowState'
 import { useRoom } from '@/hooks/useRoom'
 import { useMediaSearch } from '@/hooks/useMediaSearch'
+import { useFavorites } from '@/hooks/useFavorites'
 import type { RoomParticipant, SwipeVote } from '@/types'
 
 const FALLBACK_BACKDROP = 'https://image.tmdb.org/t/p/w1280/tmU7GeKVybMWFButWEGl2M4GeiP.jpg'
@@ -24,13 +26,13 @@ export default function RoomPage() {
 
     const roomCode = (params.id as string).toUpperCase()
     const participant = (searchParams.get('participant') ?? 'user1') as RoomParticipant
-    const userId = searchParams.get('userId') ?? 'unknown'
 
     const {
         state,
         setCategory,
         toggleGenre,
         setYearRange,
+        setCardCount,
         setMediaCards,
         setMatchResult,
         goTo,
@@ -45,13 +47,10 @@ export default function RoomPage() {
     })
 
     const { search } = useMediaSearch()
+    const { save } = useFavorites()
+    const [isSaved, setIsSaved] = useState(false)
 
     const backdropUrl = state.mediaCards[0]?.backdropUrl ?? FALLBACK_BACKDROP
-
-    // Cuando el compañero se conecta, avanzamos al flujo
-    useEffect(() => {
-        if (partnerConnected && state.step === 'category') return
-    }, [partnerConnected, state.step])
 
     const handleLoadingComplete = useCallback(async () => {
         const cards = await search(state.preferences)
@@ -95,14 +94,32 @@ export default function RoomPage() {
 
     const handleNext = useCallback(async () => {
         await savePreferences(state.preferences)
-        if (state.step === 'yearRange') {
+        if (state.step === 'cardCount') {
             goTo('loading')
         } else {
             goNext()
         }
     }, [state.step, state.preferences, savePreferences, goTo, goNext])
 
-    // Compañero desconectado
+    async function handleSave() {
+        if (!state.matchResult) return
+        const ok = await save(state.matchResult.media)
+        if (ok) setIsSaved(true)
+    }
+
+    function handleReset() {
+        setIsSaved(false)
+        reset()
+    }
+
+    const slideProps = {
+        initial: { opacity: 0, x: 40 },
+        animate: { opacity: 1, x: 0 },
+        exit: { opacity: 0, x: -40 },
+        transition: { duration: 0.35, ease: 'easeInOut' as const },
+        className: 'relative z-10 w-full',
+    }
+
     if (partnerDisconnected) {
         return (
             <main className="relative min-h-screen flex flex-col items-center justify-center px-6">
@@ -120,7 +137,7 @@ export default function RoomPage() {
                         La sesion no puede continuar sin el segundo usuario.
                     </p>
                     <button
-                        onClick={reset}
+                        onClick={handleReset}
                         className="px-6 py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition-all duration-200"
                     >
                         Volver al inicio
@@ -130,7 +147,6 @@ export default function RoomPage() {
         )
     }
 
-    // Sala de espera
     if (!partnerConnected && state.step === 'category') {
         return (
             <main className="relative min-h-screen flex flex-col items-center justify-center px-6">
@@ -172,28 +188,15 @@ export default function RoomPage() {
             <BackdropPoster src={backdropUrl} />
 
             <AnimatePresence mode="wait">
+
                 {state.step === 'category' && (
-                    <motion.div
-                        key="category"
-                        initial={{ opacity: 0, x: 40 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -40 }}
-                        transition={{ duration: 0.35 }}
-                        className="relative z-10 w-full"
-                    >
+                    <motion.div key="category" {...slideProps}>
                         <CategoryPicker onSelect={setCategory} />
                     </motion.div>
                 )}
 
                 {state.step === 'genres' && state.preferences.category && (
-                    <motion.div
-                        key="genres"
-                        initial={{ opacity: 0, x: 40 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -40 }}
-                        transition={{ duration: 0.35 }}
-                        className="relative z-10 w-full"
-                    >
+                    <motion.div key="genres" {...slideProps}>
                         <GenrePicker
                             category={state.preferences.category}
                             selectedGenres={state.preferences.genres}
@@ -205,20 +208,24 @@ export default function RoomPage() {
                 )}
 
                 {state.step === 'yearRange' && (
-                    <motion.div
-                        key="yearRange"
-                        initial={{ opacity: 0, x: 40 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -40 }}
-                        transition={{ duration: 0.35 }}
-                        className="relative z-10 w-full"
-                    >
+                    <motion.div key="yearRange" {...slideProps}>
                         <YearRangePicker
                             value={state.preferences.yearRange}
                             onChange={setYearRange}
                             onNext={handleNext}
                             onBack={goBack}
                             category={state.preferences.category ?? 'movie'}
+                        />
+                    </motion.div>
+                )}
+
+                {state.step === 'cardCount' && (
+                    <motion.div key="cardCount" {...slideProps}>
+                        <CardCountPicker
+                            value={state.preferences.cardCount}
+                            onChange={setCardCount}
+                            onNext={handleNext}
+                            onBack={goBack}
                         />
                     </motion.div>
                 )}
@@ -263,9 +270,10 @@ export default function RoomPage() {
                     >
                         <MatchResult
                             result={state.matchResult}
-                            onSave={() => { }}
+                            onSave={handleSave}
                             onRetry={() => goTo('swipe')}
-                            onReset={reset}
+                            onReset={handleReset}
+                            isSaved={isSaved}
                         />
                     </motion.div>
                 )}
@@ -282,6 +290,7 @@ export default function RoomPage() {
                         <p className="text-white/60 text-sm">Buscando coincidencias entre los dos...</p>
                     </motion.div>
                 )}
+
             </AnimatePresence>
         </main>
     )

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 
 interface LoadingScreenProps {
-    onComplete: () => void
+    onComplete: () => Promise<void>
 }
 
 const MESSAGES = [
@@ -20,37 +20,38 @@ const MESSAGES = [
 export function LoadingScreen({ onComplete }: LoadingScreenProps) {
     const [progress, setProgress] = useState(0)
     const [messageIndex, setMessageIndex] = useState(0)
+    const [apiDone, setApiDone] = useState(false)
     const calledRef = useRef(false)
 
+    // Rotar mensajes
     useEffect(() => {
-        const messageInterval = setInterval(() => {
+        const interval = setInterval(() => {
             setMessageIndex((prev) => (prev + 1) % MESSAGES.length)
         }, 1800)
-
-        return () => clearInterval(messageInterval)
+        return () => clearInterval(interval)
     }, [])
 
+    // Llamar a la API inmediatamente
     useEffect(() => {
-        const progressInterval = setInterval(() => {
+        if (calledRef.current) return
+        calledRef.current = true
+
+        onComplete().then(() => {
+            setApiDone(true)
+        })
+    }, [onComplete])
+
+    // Avanzar el progreso — se detiene en 90% hasta que la API responda
+    useEffect(() => {
+        const interval = setInterval(() => {
             setProgress((prev) => {
-                const increment = prev < 60 ? 3 : prev < 85 ? 1.5 : 0.5
-                const next = Math.min(prev + increment, 95)
-
-                if (next >= 95 && !calledRef.current) {
-                    calledRef.current = true
-                    clearInterval(progressInterval)
-                    setTimeout(() => {
-                        setProgress(100)
-                        setTimeout(() => onComplete(), 300)
-                    }, 400)
-                }
-
-                return next
+                const limit = apiDone ? 100 : 90
+                const increment = prev < 60 ? 3 : prev < 80 ? 1.5 : 0.5
+                return Math.min(prev + increment, limit)
             })
         }, 100)
-
-        return () => clearInterval(progressInterval)
-    }, [onComplete])
+        return () => clearInterval(interval)
+    }, [apiDone])
 
     return (
         <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto px-6 min-h-[60vh]">
@@ -65,19 +66,10 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
                     <motion.div
                         key={i}
                         className="absolute inset-0 rounded-full border border-white/20"
-                        animate={{
-                            scale: [1, 1.8 + i * 0.4],
-                            opacity: [0.4, 0],
-                        }}
-                        transition={{
-                            duration: 2,
-                            ease: 'easeOut',
-                            repeat: Infinity,
-                            delay: i * 0.5,
-                        }}
+                        animate={{ scale: [1, 1.8 + i * 0.4], opacity: [0.4, 0] }}
+                        transition={{ duration: 2, ease: 'easeOut', repeat: Infinity, delay: i * 0.5 }}
                     />
                 ))}
-
                 <div className="relative w-20 h-20 rounded-full glass flex items-center justify-center">
                     <motion.div
                         animate={{ rotate: 360 }}

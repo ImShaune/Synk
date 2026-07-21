@@ -73,11 +73,8 @@ export function UsernameModal({ onSave }: UsernameModalProps) {
                         {/* Texto */}
                         <div className="text-center mb-8">
                             <h2 className="text-2xl font-bold text-white mb-2">
-                                Bienvenido a MatchFlix
+                                Ingresá tu username
                             </h2>
-                            <p className="text-white/50 text-sm leading-relaxed">
-                                Como queremos llamarte?
-                            </p>
                         </div>
 
                         {/* Input */}
@@ -90,7 +87,6 @@ export function UsernameModal({ onSave }: UsernameModalProps) {
                                     setError(null)
                                 }}
                                 onKeyDown={handleKeyDown}
-                                placeholder="tu_username"
                                 maxLength={20}
                                 autoFocus
                                 className="w-full py-3.5 px-4 rounded-2xl glass border border-white/15 text-white text-center text-lg font-medium placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-colors duration-200"
@@ -110,10 +106,6 @@ export function UsernameModal({ onSave }: UsernameModalProps) {
                             </AnimatePresence>
                         </div>
 
-                        {/* Hint */}
-                        <p className="text-white/25 text-xs text-center mb-6">
-                            Solo letras, numeros y guion bajo. Min 3, max 20.
-                        </p>
 
                         {/* Boton */}
                         <motion.button

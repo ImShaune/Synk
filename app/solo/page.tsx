@@ -6,11 +6,13 @@ import { BackdropPoster } from '@/components/ui/BackdropPoster'
 import { CategoryPicker } from '@/components/screens/CategoryPicker'
 import { GenrePicker } from '@/components/screens/GenrePicker'
 import { YearRangePicker } from '@/components/screens/YearRangePicker'
+import { CardCountPicker } from '@/components/screens/CardCountPicker'
 import { LoadingScreen } from '@/components/screens/LoadingScreen'
 import { SwipeScreen } from '@/components/screens/SwipeScreen'
 import { MatchResult } from '@/components/screens/MatchResult'
 import { useFlowState } from '@/hooks/useFlowState'
 import { useMediaSearch } from '@/hooks/useMediaSearch'
+import { useFavorites } from '@/hooks/useFavorites'
 import type { SwipeVote } from '@/types'
 
 const FALLBACK_BACKDROP = 'https://image.tmdb.org/t/p/w1280/tmU7GeKVybMWFButWEGl2M4GeiP.jpg'
@@ -21,6 +23,7 @@ export default function SoloPage() {
         setCategory,
         toggleGenre,
         setYearRange,
+        setCardCount,
         setMediaCards,
         setMatchResult,
         goTo,
@@ -30,6 +33,7 @@ export default function SoloPage() {
     } = useFlowState('solo')
 
     const { search } = useMediaSearch()
+    const { save } = useFavorites()
     const [isSaved, setIsSaved] = useState(false)
 
     const backdropUrl = state.mediaCards[0]?.backdropUrl ?? FALLBACK_BACKDROP
@@ -62,34 +66,23 @@ export default function SoloPage() {
         }
     }, [state.mediaCards, state.preferences, setMatchResult, goTo])
 
-    const handleNext = useCallback(() => {
-        if (state.step === 'yearRange') {
-            goTo('loading')
-        } else {
-            goNext()
-        }
-    }, [state.step, goTo, goNext])
-
-    function handleSave() {
+    async function handleSave() {
         if (!state.matchResult) return
-        try {
-            const raw = localStorage.getItem('matchflix-saved')
-            const saved = raw ? JSON.parse(raw) : []
-            const newItem = {
-                id: 'saved-' + Date.now(),
-                media: state.matchResult.media,
-                savedAt: new Date().toISOString(),
-            }
-            localStorage.setItem('matchflix-saved', JSON.stringify([newItem, ...saved]))
-            setIsSaved(true)
-        } catch {
-            console.error('No se pudo guardar')
-        }
+        const ok = await save(state.matchResult.media)
+        if (ok) setIsSaved(true)
     }
 
     function handleReset() {
         setIsSaved(false)
         reset()
+    }
+
+    const slideProps = {
+        initial: { opacity: 0, x: 40 },
+        animate: { opacity: 1, x: 0 },
+        exit: { opacity: 0, x: -40 },
+        transition: { duration: 0.35, ease: 'easeInOut' as const },
+        className: 'relative z-10 w-full',
     }
 
     return (
@@ -98,28 +91,15 @@ export default function SoloPage() {
             <BackdropPoster src={backdropUrl} />
 
             <AnimatePresence mode="wait">
+
                 {state.step === 'category' && (
-                    <motion.div
-                        key="category"
-                        initial={{ opacity: 0, x: 40 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -40 }}
-                        transition={{ duration: 0.35, ease: 'easeInOut' }}
-                        className="relative z-10 w-full"
-                    >
+                    <motion.div key="category" {...slideProps}>
                         <CategoryPicker onSelect={setCategory} />
                     </motion.div>
                 )}
 
                 {state.step === 'genres' && state.preferences.category && (
-                    <motion.div
-                        key="genres"
-                        initial={{ opacity: 0, x: 40 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -40 }}
-                        transition={{ duration: 0.35, ease: 'easeInOut' }}
-                        className="relative z-10 w-full"
-                    >
+                    <motion.div key="genres" {...slideProps}>
                         <GenrePicker
                             category={state.preferences.category}
                             selectedGenres={state.preferences.genres}
@@ -131,20 +111,24 @@ export default function SoloPage() {
                 )}
 
                 {state.step === 'yearRange' && (
-                    <motion.div
-                        key="yearRange"
-                        initial={{ opacity: 0, x: 40 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -40 }}
-                        transition={{ duration: 0.35, ease: 'easeInOut' }}
-                        className="relative z-10 w-full"
-                    >
+                    <motion.div key="yearRange" {...slideProps}>
                         <YearRangePicker
                             value={state.preferences.yearRange}
                             onChange={setYearRange}
-                            onNext={handleNext}
+                            onNext={goNext}
                             onBack={goBack}
                             category={state.preferences.category ?? 'movie'}
+                        />
+                    </motion.div>
+                )}
+
+                {state.step === 'cardCount' && (
+                    <motion.div key="cardCount" {...slideProps}>
+                        <CardCountPicker
+                            value={state.preferences.cardCount}
+                            onChange={setCardCount}
+                            onNext={() => goTo('loading')}
+                            onBack={goBack}
                         />
                     </motion.div>
                 )}
@@ -209,6 +193,7 @@ export default function SoloPage() {
                         <p className="text-white/60 text-sm">Calculando tu Match Perfecto...</p>
                     </motion.div>
                 )}
+
             </AnimatePresence>
         </main>
     )
