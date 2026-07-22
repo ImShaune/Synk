@@ -4,26 +4,19 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { User, Users } from 'lucide-react'
 import Link from 'next/link'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
-const POSTERS = [
+const FALLBACK_POSTERS = [
   'https://image.tmdb.org/t/p/w1280/tmU7GeKVybMWFButWEGl2M4GeiP.jpg',
   'https://image.tmdb.org/t/p/w1280/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg',
-  'https://image.tmdb.org/t/p/w1280/sfw3vXVJnkH0VqXOEoKhIcBnPMb.jpg',
-  'https://image.tmdb.org/t/p/w1280/nXZFM6rAMBNKJRUbFBpjHEBVBMN.jpg',
   'https://image.tmdb.org/t/p/w1280/suopoADq0k8YZr4dQXcU6pToj6s.jpg',
   'https://image.tmdb.org/t/p/w1280/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
-  'https://image.tmdb.org/t/p/w1280/8kOWDBK6XlPUzckuHDo3wwVRFwt.jpg',
   'https://image.tmdb.org/t/p/w1280/mY7SeH4HFFxW1hiI6cWuwCRKptN.jpg',
-  'https://image.tmdb.org/t/p/w1280/bgBMfBuBHkS5bKKoHYBkDGfIBMq.jpg',
 ]
 
 const container: Variants = {
   hidden: {},
   show: {
-    transition: {
-      staggerChildren: 0.12,
-    },
+    transition: { staggerChildren: 0.12 },
   },
 }
 
@@ -32,30 +25,34 @@ const item: Variants = {
   show: {
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.6,
-      ease: 'easeOut',
-    },
+    transition: { duration: 0.6, ease: 'easeOut' },
   },
 }
 
 export default function LandingPage() {
+  const [posters, setPosters] = useState<string[]>(FALLBACK_POSTERS)
   const [currentIndex, setCurrentIndex] = useState(0)
 
   useEffect(() => {
+    fetch('/api/backdrops')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.backdrops?.length > 0) {
+          setPosters(data.backdrops.map((b: { url: string }) => b.url))
+        }
+      })
+      .catch(() => { })
+  }, [])
+
+  useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % POSTERS.length)
+      setCurrentIndex((prev) => (prev + 1) % posters.length)
     }, 4000)
     return () => clearInterval(interval)
-  }, [])
+  }, [posters.length])
 
   return (
     <main className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-
-      {/* Theme toggle */}
-      <div className="absolute top-6 right-6 z-20">
-        <ThemeToggle />
-      </div>
 
       {/* Fondo con crossfade */}
       <div className="absolute inset-0 z-0">
@@ -71,7 +68,7 @@ export default function LandingPage() {
             <div
               className="absolute inset-0 scale-105"
               style={{
-                backgroundImage: `url(${POSTERS[currentIndex]})`,
+                backgroundImage: `url(${posters[currentIndex]})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 filter: 'blur(8px) saturate(0.6)',
@@ -103,6 +100,15 @@ export default function LandingPage() {
         />
       </div>
 
+      {/* Indicadores */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex gap-1.5">
+        {posters.map((_, i) => (
+          <button key={i} onClick={() => setCurrentIndex(i)}>
+            <div className={`h-0.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-6 bg-white' : 'w-2 bg-white/30'
+              }`} />
+          </button>
+        ))}
+      </div>
 
       {/* Contenido */}
       <motion.div
